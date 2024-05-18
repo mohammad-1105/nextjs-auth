@@ -6,20 +6,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import bcryptjs from "bcryptjs";
 import { MongooseError } from "mongoose";
+import { redirect } from "next/navigation";
 
-interface registerProps {
+interface RegisterProps {
   name: string;
   email: string;
   password: string;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   // db connect first
   dbConnect();
 
   try {
     // get data from request
-    const { name, email, password }: registerProps = await request.json();
+    const { name, email, password }: RegisterProps = await request.json();
 
     // zod validation
     const { error } = registerSchema.safeParse({ name, email, password });
@@ -55,7 +56,6 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
     });
     await newUser.save();
-
     return NextResponse.json<ApiResponse>(
       {
         success: true,
