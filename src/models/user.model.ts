@@ -5,8 +5,8 @@ export interface User extends Document {
   name: string;
   email: string;
   password: string;
-  sessionToken: string;
-  sessionTokenExpiry: Date;
+  sessionToken: string | undefined;
+  sessionTokenExpiry: Date | undefined;
   forgetPasswordToken: string;
   forgetPasswordTokenExpiry: Date;
 }

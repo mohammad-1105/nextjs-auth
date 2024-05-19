@@ -16,7 +16,7 @@ interface RegisterProps {
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   // db connect first
-  dbConnect();
+  await dbConnect();
 
   try {
     // get data from request

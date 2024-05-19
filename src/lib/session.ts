@@ -17,7 +17,12 @@ export async function encrypt(userId: string) {
 
 // jwt dcrypt function
 export async function dcrypt(session: string) {
-  return jwt.verify(session, secretKey);
+  try {
+    return jwt.verify(session, secretKey);
+  } catch (error) {
+    console.error("jwt dcrpyt error :: " , error)
+  }
+  
 }
 
 // create session
@@ -47,6 +52,7 @@ export async function updateSession() {
     httpOnly: true,
     secure: true,
     maxAge: 3600, // 1 hr expiry
+    
   });
 }
 

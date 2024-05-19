@@ -2,7 +2,7 @@ import { dbConnect } from "@/lib/db/dbConnect";
 import UserModel, { User } from "@/models/user.model";
 import { NextRequest, NextResponse } from "next/server";
 import { loginSchema } from "@/schema/loginSchema";
-import { ZodError, date } from "zod";
+import { ZodError } from "zod";
 import { ApiResponse } from "@/types/ApiResponse";
 import bcryptjs from "bcryptjs";
 import { MongooseError } from "mongoose";
@@ -13,15 +13,13 @@ interface LoginProps {
   password: string;
 }
 
-interface UserWithoutPassword {
-  _id: string;
-  name: string;
-  email: string;
-}
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<ApiResponse>> {
+
   // db connect first
-  dbConnect();
+  await dbConnect();
 
   try {
     // get data from request
@@ -66,15 +64,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // create user without password
-    const userWithoutPassword: UserWithoutPassword = {
-      _id: existingUser._id.toString(),
-      name: existingUser.name,
-      email: existingUser.email,
-    };
-
     // call create session function
-    const { session } = await createSession(userWithoutPassword._id);
+    const { session } = await createSession(existingUser._id);
 
     // add and save session to db
     existingUser.sessionToken = session;
@@ -84,8 +75,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json<ApiResponse>(
       {
         success: true,
-        message: "Login successful",
-        data: userWithoutPassword,
+        message: "Login successfully",
       },
       { status: 200 }
     );
