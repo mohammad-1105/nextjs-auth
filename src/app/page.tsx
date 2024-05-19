@@ -1,9 +1,8 @@
-import { getUser } from "@/lib/dal";
+
 import Image from "next/image";
 
-export default async function Home() {
-  const user = await getUser();
-  console.log("user :: ", user)
+export default function Home() {
+ 
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">

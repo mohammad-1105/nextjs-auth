@@ -1,33 +1,40 @@
-import "server-only"
-import jwt from "jsonwebtoken";
+import "server-only";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const secretKey: string = process.env.SESSION_SECRET!;
+const secretKey = process.env.SESSION_SECRET!;
 
-// jwt encryt function
-export async function encrypt(userId: string) {
+interface SessionPayload extends JwtPayload {
+  userId: string;
+}
+
+// jwt encrypt function
+export async function encrypt(userId: string): Promise<string> {
   return jwt.sign(
-    {
-      userId: userId,
-    },
+    { userId },
     secretKey,
     { expiresIn: "1h" }
   );
 }
 
-// jwt dcrypt function
-export async function dcrypt(session: string) {
-  try {
-    return jwt.verify(session, secretKey);
-  } catch (error) {
-    console.error("jwt dcrpyt error :: " , error)
+// jwt decrypt function
+export async function dcrypt(session: string): Promise<SessionPayload | null> {
+  if (!session) {
+    console.error("No session token provided");
+    return null;
   }
   
+  try {
+    return jwt.verify(session, secretKey) as SessionPayload;
+  } catch (error) {
+    console.error("JWT decrypt error:", error);
+    return null;
+  }
 }
 
 // create session
-export async function createSession(userId: string) {
-  const session: string = await encrypt(userId);
+export async function createSession(userId: string): Promise<{ session: string }> {
+  const session = await encrypt(userId);
 
   // set cookies
   cookies().set("session", session, {
@@ -36,14 +43,21 @@ export async function createSession(userId: string) {
     maxAge: 3600, // 1 hr expiry
   });
 
-  return {session};
+  return { session };
 }
 
 // update session
-export async function updateSession() {
-  const session: string = cookies().get("session")?.value || "";
+export async function updateSession(): Promise<SessionPayload | null> {
+  const sessionCookie = cookies().get("session");
+  const session = sessionCookie?.value;
+  if (!session) {
+    console.error("No session cookie found");
+    return null;
+  }
+  
   const payload = await dcrypt(session);
-  if (!payload || !session) {
+  if (!payload) {
+    console.error("Invalid session payload");
     return null;
   }
 
@@ -52,12 +66,12 @@ export async function updateSession() {
     httpOnly: true,
     secure: true,
     maxAge: 3600, // 1 hr expiry
-    
   });
+
+  return payload;
 }
 
 // delete session
-export async function deleteSession() {
-  // delete cookies
+export async function deleteSession(): Promise<void> {
   cookies().delete("session");
 }

@@ -21,6 +21,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   try {
     // get data from request
     const { name, email, password }: RegisterProps = await request.json();
+    console.log(name, email , password)
 
     // zod validation
     const { error } = registerSchema.safeParse({ name, email, password });
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          message: "User already exists",
+          message: "User already exists with this email",
         },
         { status: 400 }
       );
