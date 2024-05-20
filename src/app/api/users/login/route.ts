@@ -6,18 +6,16 @@ import { ZodError } from "zod";
 import { ApiResponse } from "@/types/ApiResponse";
 import bcryptjs from "bcryptjs";
 import { MongooseError } from "mongoose";
-import { createSession } from "@/lib/session";
+import { encrypt } from "@/lib/session";
 
 interface LoginProps {
   email: string;
   password: string;
 }
 
-
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ApiResponse>> {
-
   // db connect first
   await dbConnect();
 
@@ -64,21 +62,28 @@ export async function POST(
       );
     }
 
-    // call create session function
-    const { session } = await createSession(existingUser._id);
-
-    // add and save session to db
-    existingUser.sessionToken = session;
-    existingUser.sessionTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hr
-    await existingUser.save();
-
-    return NextResponse.json<ApiResponse>(
+    // create session
+    const session = await encrypt(existingUser._id);
+    const response = NextResponse.json<ApiResponse>(
       {
         success: true,
         message: "Login successfully",
       },
       { status: 200 }
     );
+
+    // set cookies
+    response.cookies.set("session", session, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 3600, // 1 hr expiry
+    });
+
+    // add and save session to db
+    existingUser.sessionToken = session;
+    existingUser.sessionTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hr
+    await existingUser.save();
+    return response;
   } catch (error: any | MongooseError) {
     if (error instanceof MongooseError) {
       // Handle mongoose specific error

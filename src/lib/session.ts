@@ -32,19 +32,7 @@ export async function dcrypt(session: string): Promise<SessionPayload | null> {
   }
 }
 
-// create session
-export async function createSession(userId: string): Promise<{ session: string }> {
-  const session = await encrypt(userId);
 
-  // set cookies
-  cookies().set("session", session, {
-    httpOnly: true,
-    secure: true,
-    maxAge: 3600, // 1 hr expiry
-  });
-
-  return { session };
-}
 
 // update session
 export async function updateSession(): Promise<SessionPayload | null> {
