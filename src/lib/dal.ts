@@ -38,27 +38,27 @@ export const getUser = cache(async () => {
   try {
     // find user if session is available
     const user = await UserModel.findById(session.userId);
+    if(!user){
+      return {
+        success: false,
+        message: "User not found",
+      }
+    }
     const userWithoutPassword = {
-      _id: user?._id,
-      name: user?.name,
-      email: user?.email,
+      _id: user._id.toString(),
+      name: user.name,
+      email: user.email,
     };
-    return NextResponse.json<ApiResponse>(
-      {
-        success: true,
-        message: "user found",
-        data: userWithoutPassword,
-      },
-      { status: 200 }
-    );
+    return {
+      success: true,
+      message: "user found",
+      data: userWithoutPassword,
+    };
   } catch (error) {
     console.error("Failed to find user from getUser func ::", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Failed to find user",
-      },
-      { status: 500 }
-    );
+    return {
+      success: false,
+      message: "Failed to find user",
+    };
   }
 });

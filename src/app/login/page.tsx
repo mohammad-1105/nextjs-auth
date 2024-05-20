@@ -1,7 +1,10 @@
-import React from 'react'
+import LoginForm from "@/components/auth/login-form";
+import React from "react";
 
 export default function page() {
   return (
-    <div>page</div>
-  )
+    <div className="w-full min-h-screen flex justify-center items-center p-12 bg-gray-100">
+      <LoginForm />
+    </div>
+  );
 }

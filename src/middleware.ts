@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dcrypt } from "./lib/session";
-import { SessionPayload } from "./lib/dal";
 
 // specifiy the routes
 const publicRoutes = ["/register", "/login"];
@@ -14,17 +12,17 @@ export default async function middleware(request: NextRequest) {
 
   // dcrypt session from the cookie
   const session = request.cookies.get("session")?.value;
-  const payload = (await dcrypt(session!)) as SessionPayload;
+  // const payload = (await dcrypt(session!)) as SessionPayload;
 
   // redirect user to login if not authenticated
-  if (isProtectedRoute && !payload?.userId) {
+  if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // redirect user to dashboard if authenticated
   if (
     isPublicRoute &&
-    payload?.userId &&
+    session &&
     !request.nextUrl.pathname.startsWith("/dashboard")
   ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
